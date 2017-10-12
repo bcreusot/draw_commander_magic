@@ -1,41 +1,41 @@
 #!/usr/bin/env python3
-import json
+
 from random import shuffle
 
 
 bi_color_lands = {
-    ('I','F')  : 2,
-    ('I','P')   : 2,
-    ('I','M')   : 2,
-    ('I','S')   : 2,
-    ('F','P')   : 2,
-    ('F','M')   : 3,
-    ('F','S')   : 2,
-    ('P','M')    : 2,
-    ('P','S')    : 2,
-    ('M','S')    : 2
+    ('I','F'): 2,
+    ('F','M'): 1,
+    ('F','S'): 1,
+    ('P','M'): 1,
+    ('I','M'): 1,
+    ('M','S'): 1,
+    ('I','S'): 2,
+    ('F','P'): 1,
+    # ('I','P'): 2,
+    # ('P','S'): 2,
 }
 
 # https://mtg.gamepedia.com/TaPand#TriPe_taPands
 # In the order of the web site left to right
 tri_color_lands = {
     ('F','P','I'): 1,
-    ('P','I','S') : 1,
-    ('I','S','M') : 1,
-    ('S','M','F') : 1,
-    ('M','F','P') : 1,
-    ('P','S','F') : 1,
-    ('I','M','P') : 1,
+    ('P','I','S'): 1,
+    ('I','S','M'): 1,
+    ('S','M','F'): 1,
+    ('M','F','P'): 1,
+    ('P','S','F'): 1,
+    ('I','M','P'): 1,
     ('S','F','I'): 1,
-    ('M','P','S')  : 1,
+    ('M','P','S'): 1,
     ('F','I','M'): 1,
 }
 
 any_color_lands = {
-    ('F', 'P', 'I', 'S', 'M') : 6
+    ('F', 'P', 'I', 'S', 'M'): 6
 }
 caverns = {
-    'cavern' : 2
+    'cavern': 2
 }
 
 all_lands = {
@@ -64,8 +64,8 @@ board = []
 decision_tree = {}
 compute_tree = []
 stats = {
-    'cavern' : 0,
-    'nb_turns' : 0
+    'cavern': 0,
+    'nb_turns': 0
 }
 nb_turns_simulation = 1000
 mulligan_enabled = True
@@ -89,18 +89,6 @@ def game_set_up():
     # print('This is the deck shuffled -> %s' % list(reversed(deck)))
 
 
-def is_hand_improvable(hand_size):
-    if hand_size < 2:
-        return False
-    theory_chance_land_hand = nb_lands / deck_size
-    nb_land_hand = 0
-    for card in hand:
-        if card != 'useless':
-            nb_land_hand += 1
-    # print('Hand size %i ; nb_land %i (%f |%f)' % (hand_size,nb_land_hand,theory_chance_land_hand,nb_land_hand / (hand_size-1)))
-    return theory_chance_land_hand > nb_land_hand / (hand_size-1)
-
-
 # If we enable mulligans
 def mulligan_phase(hand_size):
     deck.extend(hand)
@@ -115,53 +103,6 @@ def mulligan_phase(hand_size):
     if not mulligan_enabled or hand_size == 0 or not is_hand_improvable(hand_size):
         return
     mulligan_phase(hand_size - 1)
-
-# ABCDE
-# -----
-# AB -> CDE -> AB -> ED
-# ACBE -> D
-# ACBD -> E
-# ADBE -> C
-# AEBD -> C
-# BCAE -> D
-# BDAE -> C
-# BCAD -> E
-# BEAD -> C
-# 2 D
-# 4 C
-# 2 E
-
-# A -> 6
-# B -> 6
-# C -> 16
-# D -> 8
-# E -> 8
-
-
-# ACD
-# ACE
-# ACBD
-# ACBE
-# AD
-# ADE
-# ADB
-# ADBE
-# AED
-# AE
-# AEBD
-# AEB
-# BCAD
-# BCAE
-# BCD
-# BCE
-# BDA
-# BDAE
-# BD
-# BDE
-# BEAD
-# BEA
-# BED
-# BE
 
 
 def place_element_tree(tree, elem):
@@ -263,6 +204,7 @@ def game_result(ret):
 
 
 if __name__ == "__main__":
+    print("------- %i simulations -------" % nb_turns_simulation)
     print("Number of bi color lands -> %i" % sum(bi_color_lands.values()))
     print("Number of tri color lands -> %i" % sum(tri_color_lands.values()))
     print("Number of any color lands -> %i" % sum(any_color_lands.values()))
@@ -275,4 +217,4 @@ if __name__ == "__main__":
         ret = game()
         game_result(ret)
     print('Win in avg %f turns' % (stats['nb_turns']/nb_turns_simulation))
-    print('Nb cavern win %i ' % (stats['cavern']))
+    print('Nb cavern win %i -> %.1f%%' % (stats['cavern'],stats['cavern']*100/nb_turns_simulation))
