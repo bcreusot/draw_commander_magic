@@ -31,3 +31,15 @@ class Hand:
     def get_cards(self):
         return self.cards
 
+    def __repr__(self):
+        display = "----------- HAND ({}) ------------\n".format(self.get_size())
+        for card in self.cards:
+            display += str(card) + "\n"
+        display += "-----------------------------"
+        return display
+
+    def remove(self, key):
+        return self.cards.pop(key)
+
+    def get_card(self, key):
+        return self.cards[key]
