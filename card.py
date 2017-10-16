@@ -38,3 +38,17 @@ class Card:
         if self.swamp:
             mana_colors.append("Swamp")
         return mana_colors
+
+    def get_binary_color_matrix(self):
+        mana_colors = []
+        if self.island:
+            mana_colors.append(0b10000)
+        if self.forest:
+            mana_colors.append(0b01000)
+        if self.mountain:
+            mana_colors.append(0b00100)
+        if self.plain:
+            mana_colors.append(0b00010)
+        if self.swamp:
+            mana_colors.append(0b00001)
+        return mana_colors

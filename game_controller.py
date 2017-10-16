@@ -32,31 +32,13 @@ binary_lands = {
 }
 
 
-binary_lands = {
-    # Bi color lands
-    0b11000: 2,
-    0b10010: 2,
-    0b10001: 2,
-    0b01100: 2,
-    0b01010: 2,
-    0b01001: 2,
-    0b00110: 2,
-    0b00011: 2,
-
-    # Tri color lands
-    0b11100: 2,
-    0b10101: 2,
-    0b10011: 2,
-    0b01011: 2,
-    0b01110: 2,
-    0b01101: 2,
-    0b10110: 2,
-    0b11001: 2,
-    0b00111: 2,
-    0b11010: 2,
-
-    0b11111: 6
-}
+# binary_lands = {
+#     # Bi color lands
+#     0b11000: 2,
+#     0b10010: 2,
+#     0b10011: 2,
+#     0b10101: 2,
+# }
 
 class GameController:
 
@@ -67,6 +49,8 @@ class GameController:
     CONST_SWAMP_MASK = 0b00001
 
     def __init__(self, deck_wanted_size,hand_init_size, enable_mulligan=True):
+        assert deck_wanted_size >= hand_init_size;
+        assert deck_wanted_size >= self.get_land_quantity();
         self.deck = Deck()
         self.hand = Hand()
         self.board = Board()
@@ -109,6 +93,7 @@ class GameController:
         self.hand.clear()
         self.hand.add_cards(cards_drawn)
         if not self.enable_mulligan or \
+           self.deck.get_size() == 0 or \
            hand_size == 0 or \
            not self.hand.is_improvable(self.get_land_quantity(), self.deck.get_size()):
             return
@@ -126,43 +111,56 @@ class GameController:
         ret = self.game()
         # game_result(ret)
 
-    def place_element_tree(self,tree, elem):
-        if not tree:
-            if type(elem) != tuple:
-                elem = tuple(elem)
-            for e in elem:
-                tree[e] = {}
-            return
-        for key, val in tree.items():
-            self.place_element_tree(val, elem)
-
-    def construct_decision_tree(self):
-        for card in self.board.get_cards():
-            if card.name == 'cavern':
-                continue
-            self.place_element_tree(self.decision_tree, card)
-
-    def do_compute_tree(self,next_elem, path=''):
-        if not next_elem:
-            return self.compute_tree.append(path)
-        for key, val in next_elem.items():
-            if key in path:
-                self.do_compute_tree(val, path)
-            else:
-                self.do_compute_tree(val, path + key)
-
-    def check_succeed(self):
-        if self.board.get_size() > 5 and self.board.has_cavern():
-            return True
-        self.construct_decision_tree()
-        # print(json.dumps(decision_tree, indent=1))
-        self.do_compute_tree(self.decision_tree)
-        # print(json.dumps(compute_tree, indent=1))
-
-        for elem in self.compute_tree:
-            if len(elem) == 5:#nb_diff_land_to_collect:
+    def check_succeed(self, binary_hand_matrix, chain=0b00000):
+        for binary_card in binary_hand_matrix:
+            binary_substract = [x for x in binary_hand_matrix if x != binary_card]
+            chain = 0b00000
+            for elem in binary_card:
+                chain = chain | elem
+                print(chain)
+            if chain == 0b11111:
+                print("Returning True")
                 return True
+        print("Returning False")
         return False
+
+    # def place_element_tree(self, tree, elem):
+    #     if not tree:
+    #         if type(elem) != tuple:
+    #             elem = tuple(elem)
+    #         for e in elem:
+    #             tree[e] = {}
+    #         return
+    #     for key, val in tree.items():
+    #         self.place_element_tree(val, elem)
+    #
+    # def construct_decision_tree(self):
+    #     for card in self.board.get_cards():
+    #         if card.name == 'cavern':
+    #             continue
+    #         self.place_element_tree(self.decision_tree, card)
+    #
+    # def do_compute_tree(self, next_elem, path=''):
+    #     if not next_elem:
+    #         return self.compute_tree.append(path)
+    #     for key, val in next_elem.items():
+    #         if key in path:
+    #             self.do_compute_tree(val, path)
+    #         else:
+    #             self.do_compute_tree(val, path + key)
+    #
+    # def check_succeed(self):
+    #     if self.board.get_size() > 5 and self.board.has_cavern():
+    #         return True
+    #     self.construct_decision_tree()
+    #     # print(json.dumps(decision_tree, indent=1))
+    #     self.do_compute_tree(self.decision_tree)
+    #     # print(json.dumps(compute_tree, indent=1))
+    #
+    #     for elem in self.compute_tree:
+    #         if len(elem) == 5:#nb_diff_land_to_collect:
+    #             return True
+    #     return False
 
     def place_land_board(self):
         weight_matrix = {}
@@ -197,7 +195,8 @@ class GameController:
             # print("Draw %s" % (card_drawn,))
             self.hand.add_cards(card_drawn)
             self.place_land_board()
-            if self.check_succeed():
+            print(self.board)
+            if self.check_succeed(self.board.get_cards_binary_color_matrix()):
                 return 1
         return 0
 
@@ -207,5 +206,5 @@ class GameController:
 
 
 if __name__ == "__main__":
-    gc = GameController(100, 30)
+    gc = GameController(19, 10)
     gc.run()

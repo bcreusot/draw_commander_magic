@@ -28,3 +28,9 @@ class Board:
         for card in self.cards:
             if card.name == 'cavern':
                 return True
+
+    def get_cards_binary_color_matrix(self):
+        array = []
+        for card in self.cards:
+            array.append(card.get_binary_color_matrix())
+        return array
